@@ -12,6 +12,8 @@ Analysis on how the ownership of a token holder change
 
 from bs4 import BeautifulSoup
 import urllib3
+#disable the annoying security warnings
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 import re
 import pandas
 import numpy
@@ -155,7 +157,6 @@ def ICO_TOKEN(tokenid, tokenname):
     owners={}
     for index, row in df.iterrows():
         owners[row['Address']]=row['Quantity (Token)']
-    print owners
     '''
     Construct the ownership transaction table
     '''
