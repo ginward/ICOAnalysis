@@ -174,7 +174,7 @@ def ICO_TOKEN(tokenid, tokenname):
         balance=owners[owner]
         trans=trans_history[owner]
         for t in trans:
-            entry=[]`
+            entry=[]
             #transaction ID
             TID=t
             #Block Height
