@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[ ]:
+# In[1]:
 
 '''
 Analysis on how the ownership of a token holder change
@@ -18,6 +18,7 @@ import re
 import pandas
 import numpy
 from time import sleep
+import time
 
 
 # In[ ]:
@@ -80,9 +81,10 @@ def owners_tr(ownerid, tokenname, classname):
         }
     }
     '''
-    trans_dic={}
     i=1
     while len(nextlinks)>0:
+        starttime=time.time()
+        trans_dic={}
         print "processing page "+str(i)+" of owner"+ownerid
         link=nextlinks.pop()
         r=pool.request('GET',baseUrl+link)
@@ -144,8 +146,8 @@ def owners_tr(ownerid, tokenname, classname):
                     block=str(tag.getText())
                     trans_dic[tx]['Block']=block
         i=i+1
-        #set a lag here to reduce CPU pressure
-        sleep(0.001)
+        elapsed=time.time()-starttime
+        print str(elapsed)+" second for each request"
     return trans_dic
 
 def ICO_TOKEN(tokenid, tokenname):
