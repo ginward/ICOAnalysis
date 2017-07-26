@@ -211,8 +211,8 @@ def ICO_TOKEN(tokenid, tokenname):
     print "starting "+str(numthread)+" threads..." 
     tpool = ThreadPool(numthread)
     tpool.map(tr_wrapper, itertools.izip(itertools.repeat(tokenname), owner_list))
-    tpool.close
-    #tpool.join()
+    tpool.close()
+    tpool.join()
     
 ICO_TOKEN('0x9a642d6b3368ddc662CA244bAdf32cDA716005BC','QTUM')
 
