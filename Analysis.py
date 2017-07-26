@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 '''
 Analysis on how the ownership of a token holder change
@@ -19,14 +19,18 @@ import pandas
 import numpy
 from time import sleep
 import time
+from multiprocessing.dummy import Pool as ThreadPool 
+import itertools
 
 
 # In[ ]:
 
 #the base url for etherscan
 baseUrl='https://etherscan.io/'
-#the connection pool
-pool=urllib3.PoolManager()
+#the connection pool, making 10 connections
+pool=urllib3.PoolManager(10)
+#number of threads
+numthread=8
 def html_convert_top100(tokenid, classname):
     '''
     Get the top 100 owners of the coin
@@ -81,10 +85,11 @@ def owners_tr(ownerid, tokenname, classname):
         }
     }
     '''
+    trans_dic={}
     i=1
     while len(nextlinks)>0:
         starttime=time.time()
-        trans_dic={}
+        tmp_dic={}
         print "processing page "+str(i)+" of owner"+ownerid
         link=nextlinks.pop()
         r=pool.request('GET',baseUrl+link)
@@ -133,9 +138,11 @@ def owners_tr(ownerid, tokenname, classname):
                     val=row['Value']
                 trans_dic[row['TxHash']]={}
                 trans_dic[row['TxHash']]['Value']=val
+                tmp_dic[row['TxHash']]={}
+                tmp_dic[row['TxHash']]['Value']=val
         
         txurl='tx/'
-        for tx in trans_dic:
+        for tx in tmp_dic:
             block=''
             req=pool.request('GET',baseUrl+txurl+tx)
             html_tx=req.data
@@ -145,35 +152,28 @@ def owners_tr(ownerid, tokenname, classname):
                 if '/block/' in tag['href']:
                     block=str(tag.getText())
                     trans_dic[tx]['Block']=block
+                    tmp_dic[tx]['Block']=block
         i=i+1
         elapsed=time.time()-starttime
         print str(elapsed)+" second for each request"
     return trans_dic
 
-def ICO_TOKEN(tokenid, tokenname):
-
-    df=html_convert_top100(tokenid, "table table-hover ")
-    '''
-    Construct the ownership table
-    '''
-    owners={}
-    for index, row in df.iterrows():
-        owners[row['Address']]=row['Quantity (Token)']
+def tr_wrapper(args):
+    tokenname=args[0]
+    owners=args[1]
     '''
     Construct the ownership transaction table
     '''
     trans_history={}
     for owner in owners:
         trans_history[owner]=owners_tr(owner,tokenname, 'table table-hover ')
-    
+
     '''
     Backout the transaction history
     '''
     headtable=['Block Height', 'Owner', 'TransactionID', 'TOKEN', 'BALANCE']
-    content=[]
-    o=1
     for owner in owners:
-        print "processing owner "+str(o)+" there are total "+len(owners)+" owners"
+        content=[]
         balance=owners[owner]
         trans=trans_history[owner]
         for t in trans:
@@ -189,10 +189,30 @@ def ICO_TOKEN(tokenid, tokenname):
             entry.append(tokenname)
             entry.append(balance)
             content.append(entry)
-        o=o+1
-    dataframe=pandas.DataFrame(content, columns=headtable)
-    return dataframe
+        dataframe=pandas.DataFrame(content, columns=headtable)
+        dataframe.to_csv('./csv/'+owner+'top100.csv')
+     
+
+def ICO_TOKEN(tokenid, tokenname):
+    global numthread
+    df=html_convert_top100(tokenid, "table table-hover ")
+    '''
+    Construct the ownership table
+    '''
+    owners={}
+    for index, row in df.iterrows():
+        owners[row['Address']]=row['Quantity (Token)']
+    owner_list=[]
+    for key in owners:
+        tmp_dict={}
+        tmp_dict[key]=owners[key]
+        owner_list.append(tmp_dict)
+    # make the Pool of workers
+    print "starting "+str(numthread)+" threads..." 
+    tpool = ThreadPool(numthread)
+    tpool.map(tr_wrapper, itertools.izip(itertools.repeat(tokenname), owner_list))
+    tpool.close
+    #tpool.join()
     
-datahistory=ICO_TOKEN('0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0','EOS')
-datahistory.to_csv('top100.csv')
+ICO_TOKEN('0x9a642d6b3368ddc662CA244bAdf32cDA716005BC','QTUM')
 
