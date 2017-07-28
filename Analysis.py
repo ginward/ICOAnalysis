@@ -78,18 +78,17 @@ def owners_tr(ownerid, tokenname, classname):
     nextlinks=[]
     nextlinks.append(transUrl+ownerid)
     '''
-    trans_dic={
+    trans_dic=[
         tx:{
             Value:'', 
             Block:''
         }
-    }
+    ]
     '''
-    trans_dic={}
+    trans_dic=[]
     i=1
     while len(nextlinks)>0:
         starttime=time.time()
-        tmp_dic={}
         print "processing page "+str(i)+" of owner"+ownerid
         link=nextlinks.pop()
         r=pool.request('GET',baseUrl+link)
@@ -131,28 +130,29 @@ def owners_tr(ownerid, tokenname, classname):
         df['Value']=df['Value'].str.replace(',','')
         df['Value']=df['Value'].astype(numpy.float64)
         for index, row in df.iterrows():
+            tmp_dic={}
             if row['Value']!=0:
                 if row['direction'] == 'OUT':
                     val=-row['Value']
                 else:
                     val=row['Value']
-                trans_dic[row['TxHash']]={}
-                trans_dic[row['TxHash']]['Value']=val
-                tmp_dic[row['TxHash']]={}
-                tmp_dic[row['TxHash']]['Value']=val
-        
-        txurl='tx/'
-        for tx in tmp_dic:
-            block=''
-            req=pool.request('GET',baseUrl+txurl+tx)
-            html_tx=req.data
-            tx_soup=BeautifulSoup(html_tx)
-            tx_a_tag=tx_soup.find_all('a',href=True)
-            for tag in tx_a_tag:
-                if '/block/' in tag['href']:
-                    block=str(tag.getText())
-                    trans_dic[tx]['Block']=block
-                    tmp_dic[tx]['Block']=block
+                tx=row['TxHash']
+                tmp_dic[tx]={}
+                tmp_dic[tx]['Value']=val
+                '''
+                Now, get the block number
+                '''
+                txurl='tx/'
+                block=''
+                req=pool.request('GET',baseUrl+txurl+tx)
+                html_tx=req.data
+                tx_soup=BeautifulSoup(html_tx)
+                tx_a_tag=tx_soup.find_all('a',href=True)
+                for tag in tx_a_tag:
+                    if '/block/' in tag['href']:
+                        block=str(tag.getText())
+                        tmp_dic[tx]['Block']=block
+                trans_dic.append(tmp_dic)
         i=i+1
         elapsed=time.time()-starttime
         print str(elapsed)+" second for each request"
@@ -167,7 +167,6 @@ def tr_wrapper(args):
     trans_history={}
     for owner in owners:
         trans_history[owner]=owners_tr(owner,tokenname, 'table table-hover ')
-
     '''
     Backout the transaction history
     '''
@@ -175,20 +174,22 @@ def tr_wrapper(args):
     for owner in owners:
         content=[]
         balance=owners[owner]
+        print balance
         trans=trans_history[owner]
-        for t in trans:
-            entry=[]
-            #transaction ID
-            TID=t
-            #Block Height
-            Block=trans[t]['Block']
-            balance=balance-trans[t]['Value']
-            entry.append(Block)
-            entry.append(owner)
-            entry.append(TID)
-            entry.append(tokenname)
-            entry.append(balance)
-            content.append(entry)
+        for l in trans:
+            for t in l:
+                entry=[]
+                #transaction ID
+                TID=t
+                #Block Height
+                Block=l[t]['Block']
+                entry.append(Block)
+                entry.append(owner)
+                entry.append(TID)
+                entry.append(tokenname)
+                entry.append(balance)
+                content.append(entry)
+                balance=balance-l[t]['Value']
         dataframe=pandas.DataFrame(content, columns=headtable)
         dataframe.to_csv('./csv/'+owner+'top100.csv')
      
@@ -202,7 +203,7 @@ def ICO_TOKEN(tokenid, tokenname):
     owners={}
     for index, row in df.iterrows():
         owners[row['Address']]=row['Quantity (Token)']
-    owner_list=[]
+    owner_list=[] 
     for key in owners:
         tmp_dict={}
         tmp_dict[key]=owners[key]
@@ -214,5 +215,10 @@ def ICO_TOKEN(tokenid, tokenname):
     tpool.close()
     tpool.join()
     
-ICO_TOKEN('0x9a642d6b3368ddc662CA244bAdf32cDA716005BC','QTUM')
+ICO_TOKEN('0x888666CA69E0f178DED6D75b5726Cee99A87D698','EOS')
+
+
+# In[ ]:
+
+
 
