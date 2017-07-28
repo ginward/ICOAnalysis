@@ -1,14 +1,14 @@
 
 # coding: utf-8
 
-# In[ ]:
+# In[28]:
 
 '''
 Analysis on how the ownership of a token holder change
 '''
 
 
-# In[ ]:
+# In[29]:
 
 from bs4 import BeautifulSoup
 import urllib3
@@ -23,7 +23,7 @@ from multiprocessing.dummy import Pool as ThreadPool
 import itertools
 
 
-# In[ ]:
+# In[30]:
 
 #the base url for etherscan
 baseUrl='https://etherscan.io/'
@@ -133,9 +133,9 @@ def owners_tr(ownerid, tokenname, classname):
             tmp_dic={}
             if row['Value']!=0:
                 if row['direction'] == 'OUT':
-                    val=row['Value']
-                else:
                     val=-row['Value']
+                else:
+                    val=+row['Value']
                 tx=row['TxHash']
                 tmp_dic[tx]={}
                 tmp_dic[tx]['Value']=val
@@ -174,9 +174,21 @@ def tr_wrapper(args):
     for owner in owners:
         content=[]
         balance=owners[owner]
-        print balance
         trans=trans_history[owner]
+        i=0
         for l in trans:
+            #The first record
+            if i==0:
+                entry=[]
+                TID='ENDING BALANCE'
+                Block='N/A'
+                entry.append(Block)
+                entry.append(owner)
+                entry.append(TID)
+                entry.append(tokenname)
+                entry.append(balance)
+                content.append(entry)
+                i=i+1
             for t in l:
                 entry=[]
                 #transaction ID
@@ -190,7 +202,18 @@ def tr_wrapper(args):
                 entry.append(balance)
                 content.append(entry)
                 balance=balance-l[t]['Value']
-                
+                #The last record
+                if i==len(trans):
+                    entry=[]
+                    TID='BEGINNING BALANCE'
+                    Block='N/A'
+                    entry.append(Block)
+                    entry.append(owner)
+                    entry.append(TID)
+                    entry.append(tokenname)
+                    entry.append(balance)
+                    content.append(entry)
+        i=i+1
         dataframe=pandas.DataFrame(content, columns=headtable)
         dataframe.to_csv('./csv/'+owner+'top100.csv')
      
