@@ -133,9 +133,9 @@ def owners_tr(ownerid, tokenname, classname):
             tmp_dic={}
             if row['Value']!=0:
                 if row['direction'] == 'OUT':
-                    val=-row['Value']
-                else:
                     val=row['Value']
+                else:
+                    val=-row['Value']
                 tx=row['TxHash']
                 tmp_dic[tx]={}
                 tmp_dic[tx]['Value']=val
@@ -190,6 +190,7 @@ def tr_wrapper(args):
                 entry.append(balance)
                 content.append(entry)
                 balance=balance-l[t]['Value']
+                
         dataframe=pandas.DataFrame(content, columns=headtable)
         dataframe.to_csv('./csv/'+owner+'top100.csv')
      
