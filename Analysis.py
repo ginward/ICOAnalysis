@@ -90,7 +90,9 @@ def owners_tr(ownerid, tokenname, classname):
     trans_dic=[]
     #avoid counting duplicate transactions
     trans_set=Set()
-    i=1
+    #the earliest block (only block after this will be considered)
+    earliest_block=0
+    i=0
     while len(nextlinks)>0:
         starttime=time.time()
         print "processing page "+str(i)+" of owner"+ownerid
@@ -133,6 +135,7 @@ def owners_tr(ownerid, tokenname, classname):
         df=df.loc[df['Token'] == tokenname]
         df['Value']=df['Value'].str.replace(',','')
         df['Value']=df['Value'].astype(numpy.float64)
+        j=0
         for index, row in df.iterrows():
             if row['TxHash']!='' and row['TxHash'] not in trans_set:
                 trans_set.add(row['TxHash'])
@@ -157,10 +160,16 @@ def owners_tr(ownerid, tokenname, classname):
                     for tag in tx_a_tag:
                         if '/block/' in tag['href']:
                             block=str(tag.getText())
+                            if block=='':
+                                j=-1
+                            if i==0 and j==0:
+                                earliest_block=long(block)
                             tmp_dic[tx]['Block']=block
-                    trans_dic.append(tmp_dic)
-            else:
-                pass
+                    if long(tmp_dic[tx]['Block']) <= earliest_block:
+                        trans_dic.append(tmp_dic)
+                else:
+                    j=-1
+            j=j+1
         i=i+1
         elapsed=time.time()-starttime
         print str(elapsed)+" second for each request"
@@ -243,6 +252,7 @@ def ICO_TOKEN(tokenid, tokenname):
         tmp_dict={}
         tmp_dict[key]=owners[key]
         owner_list.append(tmp_dict)
+    owner_list=[{'0xdb7b85f792e7ff56abe78b03338ed24fbd088464':304769.65339853}]
     # make the Pool of workers
     print "starting "+str(numthread)+" threads..." 
     tpool = ThreadPool(numthread)
