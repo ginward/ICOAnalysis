@@ -21,6 +21,8 @@ from time import sleep
 import time
 from multiprocessing.dummy import Pool as ThreadPool 
 import itertools
+#avoid counting duplicate transactions
+from sets import Set
 
 
 # In[ ]:
@@ -86,6 +88,8 @@ def owners_tr(ownerid, tokenname, classname):
     ]
     '''
     trans_dic=[]
+    #avoid counting duplicate transactions
+    trans_set=Set()
     i=1
     while len(nextlinks)>0:
         starttime=time.time()
@@ -130,7 +134,8 @@ def owners_tr(ownerid, tokenname, classname):
         df['Value']=df['Value'].str.replace(',','')
         df['Value']=df['Value'].astype(numpy.float64)
         for index, row in df.iterrows():
-            if row['TxHash']!='':
+            if row['TxHash']!='' and row['TxHash'] not in trans_set:
+                trans_set.add(row['TxHash'])
                 tmp_dic={}
                 if row['Value']!=0:
                     if row['direction'] == 'OUT':
