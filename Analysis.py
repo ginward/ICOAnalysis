@@ -215,7 +215,7 @@ def ICO_TOKEN(tokenid, tokenname):
     tpool.close()
     tpool.join()
     
-ICO_TOKEN('0x888666CA69E0f178DED6D75b5726Cee99A87D698','EOS')
+ICO_TOKEN('0x86Fa049857E0209aa7D9e616F7eb3b3B78ECfdb0','EOS')
 
 
 # In[ ]:
