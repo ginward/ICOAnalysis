@@ -1,14 +1,14 @@
 
 # coding: utf-8
 
-# In[28]:
+# In[ ]:
 
 '''
 Analysis on how the ownership of a token holder change
 '''
 
 
-# In[29]:
+# In[ ]:
 
 from bs4 import BeautifulSoup
 import urllib3
@@ -23,14 +23,14 @@ from multiprocessing.dummy import Pool as ThreadPool
 import itertools
 
 
-# In[30]:
+# In[ ]:
 
 #the base url for etherscan
 baseUrl='https://etherscan.io/'
 #the connection pool, making 10 connections
-pool=urllib3.PoolManager(10)
+pool=urllib3.PoolManager(9)
 #number of threads
-numthread=8
+numthread=3
 def html_convert_top100(tokenid, classname):
     '''
     Get the top 100 owners of the coin
@@ -130,29 +130,32 @@ def owners_tr(ownerid, tokenname, classname):
         df['Value']=df['Value'].str.replace(',','')
         df['Value']=df['Value'].astype(numpy.float64)
         for index, row in df.iterrows():
-            tmp_dic={}
-            if row['Value']!=0:
-                if row['direction'] == 'OUT':
-                    val=-row['Value']
-                else:
-                    val=+row['Value']
-                tx=row['TxHash']
-                tmp_dic[tx]={}
-                tmp_dic[tx]['Value']=val
-                '''
-                Now, get the block number
-                '''
-                txurl='tx/'
-                block=''
-                req=pool.request('GET',baseUrl+txurl+tx)
-                html_tx=req.data
-                tx_soup=BeautifulSoup(html_tx)
-                tx_a_tag=tx_soup.find_all('a',href=True)
-                for tag in tx_a_tag:
-                    if '/block/' in tag['href']:
-                        block=str(tag.getText())
-                        tmp_dic[tx]['Block']=block
-                trans_dic.append(tmp_dic)
+            if row['TxHash']!='':
+                tmp_dic={}
+                if row['Value']!=0:
+                    if row['direction'] == 'OUT':
+                        val=-row['Value']
+                    else:
+                        val=+row['Value']
+                    tx=row['TxHash']
+                    tmp_dic[tx]={}
+                    tmp_dic[tx]['Value']=val
+                    '''
+                    Now, get the block number
+                    '''
+                    txurl='tx/'
+                    block=''
+                    req=pool.request('GET',baseUrl+txurl+tx)
+                    html_tx=req.data
+                    tx_soup=BeautifulSoup(html_tx)
+                    tx_a_tag=tx_soup.find_all('a',href=True)
+                    for tag in tx_a_tag:
+                        if '/block/' in tag['href']:
+                            block=str(tag.getText())
+                            tmp_dic[tx]['Block']=block
+                    trans_dic.append(tmp_dic)
+            else:
+                pass
         i=i+1
         elapsed=time.time()-starttime
         print str(elapsed)+" second for each request"
@@ -166,7 +169,10 @@ def tr_wrapper(args):
     '''
     trans_history={}
     for owner in owners:
-        trans_history[owner]=owners_tr(owner,tokenname, 'table table-hover ')
+        if owners != '':
+            trans_history[owner]=owners_tr(owner,tokenname, 'table table-hover ')
+        else: 
+            pass
     '''
     Backout the transaction history
     '''
@@ -240,9 +246,4 @@ def ICO_TOKEN(tokenid, tokenname):
     tpool.join()
     
 ICO_TOKEN('0x86Fa049857E0209aa7D9e616F7eb3b3B78ECfdb0','EOS')
-
-
-# In[ ]:
-
-
 
