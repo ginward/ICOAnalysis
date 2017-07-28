@@ -27,7 +27,7 @@ import itertools
 
 #the base url for etherscan
 baseUrl='https://etherscan.io/'
-#the connection pool, making 10 connections
+#the connection pool, making 9 connections
 pool=urllib3.PoolManager(9)
 #number of threads
 numthread=3
