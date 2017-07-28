@@ -252,7 +252,6 @@ def ICO_TOKEN(tokenid, tokenname):
         tmp_dict={}
         tmp_dict[key]=owners[key]
         owner_list.append(tmp_dict)
-    owner_list=[{'0xdb7b85f792e7ff56abe78b03338ed24fbd088464':304769.65339853}]
     # make the Pool of workers
     print "starting "+str(numthread)+" threads..." 
     tpool = ThreadPool(numthread)
