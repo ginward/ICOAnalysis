@@ -162,10 +162,11 @@ def owners_tr(ownerid, tokenname, classname):
                             block=str(tag.getText())
                             if block=='':
                                 j=-1
+                                continue
                             if i==0 and j==0:
                                 earliest_block=long(block)
                             tmp_dic[tx]['Block']=block
-                    if long(tmp_dic[tx]['Block']) <= earliest_block:
+                    if 'Block' in tmp_dic[tx] and long(tmp_dic[tx]['Block']) <= earliest_block:
                         trans_dic.append(tmp_dic)
                 else:
                     j=-1
