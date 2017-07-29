@@ -95,7 +95,7 @@ def owners_tr(ownerid, tokenname, classname):
     i=0
     while len(nextlinks)>0:
         starttime=time.time()
-        print "processing page "+str(i)+" of owner"+ownerid
+        print "processing page "+str(i)+" of owner: "+ownerid
         link=nextlinks.pop()
         r=pool.request('GET',baseUrl+link)
         html=r.data
@@ -178,7 +178,7 @@ def owners_tr(ownerid, tokenname, classname):
             j=j+1
         i=i+1
         elapsed=time.time()-starttime
-        print str(elapsed)+" second for each request"
+        print str(elapsed)+" second for each request (Owner: "+ownerid+" )"
     return trans_dic
 
 def tr_wrapper(args):
