@@ -157,15 +157,20 @@ def owners_tr(ownerid, tokenname, classname):
                     html_tx=req.data
                     tx_soup=BeautifulSoup(html_tx)
                     tx_a_tag=tx_soup.find_all('a',href=True)
+                    m=0
                     for tag in tx_a_tag:
                         if '/block/' in tag['href']:
                             block=str(tag.getText())
                             if block=='':
-                                j=-1
-                                continue
+                                if m==len(tx_a_tag)-1:
+                                    block=0
+                                else:
+                                    j=-1
+                                    continue
                             if i==0 and j==0:
                                 earliest_block=long(block)
                             tmp_dic[tx]['Block']=block
+                        m=m+1
                     if 'Block' in tmp_dic[tx] and long(tmp_dic[tx]['Block']) <= earliest_block:
                         trans_dic.append(tmp_dic)
                 else:
