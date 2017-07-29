@@ -29,8 +29,8 @@ from sets import Set
 
 #the base url for etherscan
 baseUrl='https://etherscan.io/'
-#the connection pool, making 9 connections
-pool=urllib3.PoolManager(9)
+#the connection pool, making 3 connections
+pool=urllib3.PoolManager(3)
 #number of threads
 numthread=3
 def html_convert_top100(tokenid, classname):
