@@ -233,7 +233,7 @@ def tr_wrapper(args):
                     entry.append(tokenname)
                     entry.append(balance)
                     content.append(entry)
-        i=i+1
+            i=i+1
         dataframe=pandas.DataFrame(content, columns=headtable)
         dataframe.to_csv('./csv/'+owner+'top100.csv')
      
